@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="StudyBoard — a focused student task and leaderboard app">
+  <title>StudyBoard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <main id="authView" class="auth-shell">
+    <section class="auth-card">
+      <div class="brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <h1>StudyBoard</h1>
+          <p>Assignments. Momentum. Progress.</p>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-auth-tab="login">Sign in</button>
+        <button class="tab" data-auth-tab="register">Create account</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <label>Username<input id="loginUsername" autocomplete="username" required maxlength="32"></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+        <button class="primary wide" type="submit">Sign in</button>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <label>Username<input id="registerUsername" autocomplete="username" required maxlength="32" pattern="[A-Za-z0-9._-]+"></label>
+        <label>Password<input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label>
+        <p class="hint">8–128 characters. Letters, numbers, dots, underscores and hyphens are allowed in usernames.</p>
+        <button class="primary wide" type="submit">Create account</button>
+      </form>
+    </section>
+  </main>
+
+  <main id="appView" class="app-shell hidden">
+    <header class="topbar">
+      <div class="brand compact">
+        <span class="brand-mark">S</span>
+        <strong>StudyBoard</strong>
+      </div>
+      <div class="top-actions">
+        <div class="score-pill"><span>Score</span><strong id="scoreValue">0</strong></div>
+        <span id="usernameLabel" class="username"></span>
+        <button id="logoutBtn" class="ghost">Log out</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="main-column">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">YOUR ACADEMIC COMMAND CENTER</p>
+            <h2 id="greeting">Good afternoon.</h2>
+            <p>Turn every assignment into measurable progress.</p>
+          </div>
+          <button id="addTaskBtn" class="primary">+ Add assignment</button>
+        </div>
+
+        <section class="panel filters">
+          <div class="filter-grid">
+            <label>Subject<select id="subjectFilter"><option value="">All subjects</option></select></label>
+            <label>Priority<select id="priorityFilter">
+              <option value="">All priorities</option><option value="high">High</option>
+              <option value="medium">Medium</option><option value="low">Low</option>
+            </select></label>
+            <label>Status<select id="completedFilter">
+              <option value="">All</option><option value="false">Active</option><option value="true">Completed</option>
+            </select></label>
+            <label>Due<select id="dueFilter">
+              <option value="">Any time</option><option value="overdue">Overdue</option>
+              <option value="today">Today</option><option value="week">Next 7 days</option>
+            </select></label>
+            <label>Sort<select id="sortFilter">
+              <option value="due_asc">Due soonest</option><option value="due_desc">Due latest</option>
+              <option value="priority">Priority</option><option value="points">Points</option>
+              <option value="newest">Newest</option><option value="oldest">Oldest</option>
+            </select></label>
+          </div>
+        </section>
+
+        <section id="taskList" class="task-list"></section>
+        <div id="emptyState" class="empty panel hidden">
+          <div class="empty-icon">✓</div>
+          <h3>No assignments here</h3>
+          <p>Add your next assignment or change the filters.</p>
+        </div>
+      </section>
+
+      <aside class="side-column">
+        <section class="panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">NETWORK</p><h3>Find classmates</h3></div>
+          </div>
+          <div class="search-row">
+            <input id="friendSearch" placeholder="Search username…" maxlength="32">
+          </div>
+          <div id="friendResults" class="stack"></div>
+          <div class="subsection">
+            <h4>Requests</h4>
+            <div id="incomingRequests" class="stack"></div>
+          </div>
+          <div class="subsection">
+            <h4>Your connections</h4>
+            <div id="friendsList" class="stack"></div>
+          </div>
+        </section>
+
+        <section class="panel leaderboard">
+          <div class="panel-heading">
+            <div><p class="eyebrow">COMPETE</p><h3>Leaderboard</h3></div>
+            <div class="leader-tabs">
+              <button class="leader-tab active" data-board="friends">Friends</button>
+              <button class="leader-tab" data-board="global">Global</button>
+            </div>
+          </div>
+          <div id="leaderboardList" class="leader-list"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="taskDialog" class="modal">
+    <form id="taskForm" method="dialog" class="modal-card">
+      <div class="modal-header">
+        <div><p class="eyebrow">ASSIGNMENT</p><h3 id="modalTitle">Add assignment</h3></div>
+        <button type="button" id="closeModal" class="icon-btn" aria-label="Close">×</button>
+      </div>
+      <input id="taskId" type="hidden">
+      <label>Subject<input id="taskSubject" maxlength="80" required placeholder="Mathematics"></label>
+      <label>Description<textarea id="taskDescription" maxlength="2000" rows="5" required placeholder="What do you need to complete?"></textarea></label>
+      <div class="two-col">
+        <label>Due date & time<input id="taskDue" type="datetime-local" required></label>
+        <label>Priority<select id="taskPriority">
+          <option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option>
+        </select></label>
+      </div>
+      <label>Points <span class="label-note">(leave unchanged for priority default)</span>
+        <input id="taskPoints" type="number" min="0" max="1000" step="1" placeholder="20">
+      </label>
+      <div class="modal-actions">
+        <button type="button" id="cancelModal" class="ghost">Cancel</button>
+        <button class="primary" type="submit">Save assignment</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
